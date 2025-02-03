@@ -1,5 +1,5 @@
 import { Hono } from "hono"
-
+import { signUp, signIn } from "./index.ts"
 
 const app = new Hono()
 

@@ -1,6 +1,6 @@
 import "dotenv/config"
 import { drizzle } from "drizzle-orm/libsql"
-import { usersTable } from "./db/schema"
+import { usersTable } from "./db/schema.ts"
 import bcrypt from "bcrypt"
 import { eq } from "drizzle-orm"
 
