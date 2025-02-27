@@ -1,15 +1,14 @@
 import "dotenv/config"
 import { drizzle } from "drizzle-orm/libsql"
-import { usersTable } from "./db/schema.ts"
-import bcrypt from "bcrypt"
+import { postsTable, usersTable } from "./db/schema.ts"
 import { eq } from "drizzle-orm"
+import bcrypt from "bcrypt"
 
 function hashPassword(password: string) {
     const HASH_TIMES = 5
 
     return bcrypt.hashSync(password, HASH_TIMES)
 }
-
 
 const db = drizzle({
     connection: {
@@ -21,7 +20,7 @@ const db = drizzle({
 /* 
     Check if the inputted username is already in use. If not, save the inputted username and password (hashed) to the database.
 */
-async function signUp(username: string, password: string): Promise<boolean> {
+export async function signUp(username: string, password: string): Promise<boolean> {
     const foundUser = await db.select().from(usersTable).where(eq(usersTable.username, username))
 
     if (foundUser.length !== 0) {
@@ -42,12 +41,28 @@ async function signUp(username: string, password: string): Promise<boolean> {
 /* 
     Check if the inputted username is stored in the database. If true then attempt to sign in.
 */
-async function signIn(username: string, password: string) {
+export async function signIn(username: string, password: string) {
     const foundUser = await db.select().from(usersTable).where(eq(usersTable.username, username))
 
     if (foundUser.length === 0) {
-        throw new Error("User doesn't exist")
+        return false
     }
 
-    return await bcrypt.compare(password, foundUser[0].password);
+    return await bcrypt.compare(password, foundUser[0].password)
+}
+
+export async function post(username: string, message: string, location: string) {    
+    const newPost: typeof postsTable.$inferInsert = {
+        username: username,
+        message: message,
+        location: location
+    }
+
+    await db.insert(postsTable).values(newPost)
+    
+    return true
+}
+
+export async function getAllMessages() {
+    return await db.select().from(postsTable)
 }
